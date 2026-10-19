@@ -11,7 +11,7 @@ import hashlib
 from Model.netwirk_DB import DB
 import os
 import qrcode
-from PIL import Image, ImageStat, ImageFilter
+from PIL import Image, ImageOps, ImageStat, ImageFilter
 import io
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MultiLabelBinarizer, OneHotEncoder, MinMaxScaler
@@ -46,13 +46,15 @@ from datetime import datetime, date
 from math import radians, cos, sin, asin, sqrt, atan2
 from difflib import SequenceMatcher
 import logging
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 from Model.recsys.checkin_features import ALL_TAGS, primary_type_to_tag
 from metrics import record_fallback
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-model = SentenceTransformer('all-MiniLM-L6-v2') 
+# Prompt embeddings are unused by the live feed. Leave this off so profile
+# saves do not load or run all-MiniLM-L6-v2.
+# model = SentenceTransformer('all-MiniLM-L6-v2') 
 
 RECENCY_HALF_LIFE_DAYS = 14   # behaviour signal halves every 14 days
 SKIP_PENALTY_WEIGHT    = 0.35  # how hard a hide penalises similar candidates
@@ -374,7 +376,7 @@ class profile:
                 (user_id,what_makes_my_friends_laugh_about_me,weekend_usually_looks_like,zodiac_sign,notify_connection,background_notify, height, Describe_your_communication_style, What_brings_you_to_VYB, vibe_I_bring,
                  What_kind_of_partner_do_you_vibe_with_most, What_does_everyday_vyb_look_like, prompt1question, prompt1answer, prompt2question, prompt2answer, user_id))
             
-            self.store_embedding(user_id, data['prompt1answer'], data['prompt2answer'])
+            # self.store_embedding(user_id, data['prompt1answer'], data['prompt2answer'])
 
 
             self.db.conn.commit()
@@ -552,6 +554,65 @@ class profile:
         return user_dict
 
         
+    MAX_S3_IMAGE_BYTES = 500 * 1024
+
+    @staticmethod
+    def _compress_image_for_s3(path):
+        """Return a JPEG at or under 500KB when the saved image is larger."""
+        try:
+            if os.path.getsize(path) <= profile.MAX_S3_IMAGE_BYTES:
+                return path
+        except OSError:
+            return path
+
+        try:
+            with Image.open(path) as source:
+                source.draft("RGB", (1600, 1600))
+                oriented = ImageOps.exif_transpose(source)
+                oriented.load()
+                if oriented.mode in ("RGBA", "LA") or (
+                    oriented.mode == "P" and "transparency" in oriented.info
+                ):
+                    rgba = oriented.convert("RGBA")
+                    image = Image.new("RGB", rgba.size, (255, 255, 255))
+                    image.paste(rgba, mask=rgba.split()[-1])
+                elif oriented.mode != "RGB":
+                    image = oriented.convert("RGB")
+                else:
+                    image = oriented.copy()
+        except Exception:
+            return path
+
+        long_side = max(image.width, image.height)
+        if long_side > 1600:
+            ratio = 1600 / long_side
+            image = image.resize(
+                (max(1, int(image.width * ratio)), max(1, int(image.height * ratio))),
+                Image.Resampling.BILINEAR,
+            )
+
+        out_path = os.path.splitext(path)[0] + ".jpg"
+        payload = b""
+        for _ in range(4):
+            buffer = io.BytesIO()
+            image.save(buffer, format="JPEG", quality=75)
+            payload = buffer.getvalue()
+            if len(payload) <= profile.MAX_S3_IMAGE_BYTES:
+                break
+            image = image.resize(
+                (max(1, int(image.width * 0.75)), max(1, int(image.height * 0.75))),
+                Image.Resampling.BILINEAR,
+            )
+
+        with open(out_path, "wb") as handle:
+            handle.write(payload)
+        if os.path.normcase(os.path.abspath(out_path)) != os.path.normcase(os.path.abspath(path)):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+        return out_path
+
     def upload_profile_pic(self, user_id):
         try:
             # === Load AWS credentials from JSON file ===
@@ -586,6 +647,8 @@ class profile:
 
             # only safe path is used
             file.save(save_path)
+            save_path = self._compress_image_for_s3(save_path)
+            filename = os.path.basename(save_path)
 
             # Upload to S3
             s3.upload_file(save_path, bucket_name, folder_name + filename,
@@ -10326,7 +10389,13 @@ Reported at: {formatted_time}"""
         local_path = os.path.join(local_dir, final_filename)
 
         file.save(local_path)
-        s3.upload_file(local_path, bucket, folder + final_filename, ExtraArgs={'ContentType': file.content_type})
+        original_path = local_path
+        local_path = self._compress_image_for_s3(local_path)
+        final_filename = os.path.basename(local_path)
+        content_type = file.content_type or "application/octet-stream"
+        if os.path.normcase(os.path.abspath(local_path)) != os.path.normcase(os.path.abspath(original_path)):
+            content_type = "image/jpeg"
+        s3.upload_file(local_path, bucket, folder + final_filename, ExtraArgs={'ContentType': content_type})
         url = f"https://{bucket}.s3.{region}.amazonaws.com/{folder}{final_filename}"
         return url, local_path
 
@@ -12754,6 +12823,8 @@ Reported at: {formatted_time}"""
 
                 # only safe path is used
                 file.save(save_path)
+                save_path = self._compress_image_for_s3(save_path)
+                filename = os.path.basename(save_path)
 
                 # Upload to S3
                 s3.upload_file(save_path, bucket_name, folder_name + filename,
@@ -13486,7 +13557,7 @@ Reported at: {formatted_time}"""
                             (full_name, gender, preference, country_code,
                             phone_no, city, state, country, user_id))
 
-            self.store_embedding(user_id, prompt1answer, prompt2answer)
+            # self.store_embedding(user_id, prompt1answer, prompt2answer)
             
             self.db.conn.commit()
 
@@ -16101,7 +16172,8 @@ Reported at: {formatted_time}"""
         
         if not text or not text.strip():
             return np.zeros(384)  # all-MiniLM-L6-v2 output dim
-        return model.encode(text.strip(), normalize_embeddings=True)
+        # return model.encode(text.strip(), normalize_embeddings=True)
+        return np.zeros(384)
 
     def _cosine_similarity(self, vec1, vec2):
         """Returns cosine similarity between two vectors (already normalized → dot product)."""
