@@ -142,16 +142,6 @@ def user_confirm_new_password():
     except Exception as e:
         return "Error"
 
-@registrationRoute.route('/linkedin_user_login', methods=['POST'])
-@swag_from('registration/linkedin_user_login.yml')
-def user_social_login():
-    register = registration()
-    try:
-        create = register.linkedin_user_login()
-        return create
-    except Exception as e:
-        return "Error"
-
 @registrationRoute.route('/confirm_user_in_cognito', methods=['POST'])
 @swag_from('registration/confirm_user_in_cognito.yml')
 def confirm_new_user_in_cognito():
@@ -173,16 +163,6 @@ def update_authenticationId_via_userId():
         return "Error"
 
 
-@registrationRoute.route('/update_registration_details', methods=['POST'])
-@swag_from('registration/update_registration_details.yml')
-def update_user_registration_details():
-    register = registration()
-    try:
-        create = register.update_registration_details()
-        return create
-    except Exception as e:
-        return "Error"
-
 @registrationRoute.route('/set_new_password', methods=['POST'])
 @swag_from('registration/set_new_password.yml')
 def set_new_password_now():
@@ -193,36 +173,6 @@ def set_new_password_now():
     except Exception as e:
         return "Error"
 
-@registrationRoute.route('/register_admin', methods=['POST'])
-@swag_from('registration/register_admin.yml')
-def register_admin_now():
-    register = registration()
-    try:
-        create = register.register_admin()
-        return create
-    except Exception as e:
-        return "Error"
-
-@registrationRoute.route('/admin_login', methods=['POST'])
-@swag_from('registration/admin_login.yml')
-def admin_login_now():
-    register = registration()
-    try:
-        create = register.admin_login()
-        return create
-    except Exception as e:
-        return "Error"
-
-@registrationRoute.route('/verify_otp_admin', methods=['POST'])
-@swag_from('registration/verify_otp_admin.yml')
-def verify_otp_admin_now():
-    register = registration()
-    try:
-        create = register.verify_otp_admin()
-        return create
-    except Exception as e:
-        return "Error"
-    
 @registrationRoute.route('/register_apple_user', methods=['POST'])
 @swag_from('registration/register_apple_user.yml')
 def register_apple_user_now():

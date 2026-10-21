@@ -11,56 +11,12 @@ from Model.netwirk_profile import profile
 netwirkProfileRoute = Blueprint('netwirkProfileRoute', __name__, url_prefix='/netwirkProfileRoute')
 
 
-@netwirkProfileRoute.route('/createProfile', methods=['POST'])
-@swag_from('netwirkProfile/createProfile.yml')
-def register_new_user():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.create_profile()
-        return create
-    except Exception as e:
-        return "Error"
-    
 @netwirkProfileRoute.route('/create_profile_new', methods=['POST'])
 @swag_from('netwirkProfile/create_profile_new.yml')
 def create_profile_new():
     netwirkProfile = profile()
     try:
         create = netwirkProfile.create_profile_new()
-        return create
-    except Exception as e:
-        return "Error"
-
-@netwirkProfileRoute.route('/edit_profile_details', methods=['POST'])
-@swag_from('netwirkProfile/edit_profile_details.yml')
-def edit_profile_details_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.edit_profile_details()
-        return create
-    except Exception as e:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_profile_details', methods=['POST'])
-@swag_from('netwirkProfile/get_profile_details.yml')
-def get_profile_details_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_profile_details()
-        return create
-    except Exception as e:
-        return "Error"
-
-@netwirkProfileRoute.route('/upload_profile_pic', methods=['POST'])
-@swag_from('netwirkProfile/upload_profile_pic.yml')
-def upload_user_profile_pic():
-    netwirkProfile = profile()
-    try:
-        user_id_raw = request.form.get('userId', '')
-        if not user_id_raw.isdigit():
-            return "Invalid user ID", 400
-        user_id = int(user_id_raw)
-        create = netwirkProfile.upload_profile_pic(user_id)
         return create
     except Exception as e:
         return "Error"
@@ -86,26 +42,6 @@ def fetch_google_locations():
 #     except:
 #         return "Error"
 
-@netwirkProfileRoute.route('/fetch_location_from_open_places', methods=['POST'])
-@swag_from('netwirkProfile/fetch_location_from_open_places.yml')
-def fetch_open_places_locations():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.fetch_location_from_open_places()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/fetch_location_from_geoapify', methods=['POST'])
-@swag_from('netwirkProfile/fetch_location_from_geoapify.yml')
-def fetch_geoapify_locations():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.fetch_location_from_geoapify()
-        return create
-    except:
-        return "Error"
-
 @netwirkProfileRoute.route('/userCheckin', methods=['POST'])
 @swag_from('netwirkProfile/userCheckin.yml')
 def userCheckin_location():
@@ -116,16 +52,6 @@ def userCheckin_location():
     except:
         return "Error"  
 
-
-@netwirkProfileRoute.route('/getUserList', methods=['POST'])
-@swag_from('netwirkProfile/getUserList.yml')
-def get_User_List():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.getUserList()
-        return create
-    except:
-        return "Error"
 
 @netwirkProfileRoute.route('/usercheckinSendNotification', methods=['POST'])
 @swag_from('netwirkProfile/usercheckinSendNotification.yml')
@@ -329,109 +255,6 @@ def checkout_from_checkinlocation_now():
     except:
         return "Error"
 
-@netwirkProfileRoute.route('/create_update_event', methods=['POST'])
-@swag_from('netwirkProfile/create_update_event.yml')
-def create_update_event_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.create_update_event()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_list_of_events_created', methods=['POST'])
-@swag_from('netwirkProfile/get_list_of_events_created.yml')
-def get_list_of_events_created_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_list_of_events_created()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_event_details', methods=['POST'])
-@swag_from('netwirkProfile/get_event_details.yml')
-def get_event_details_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_event_details()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/event_userCheckin', methods=['POST'])
-@swag_from('netwirkProfile/event_userCheckin.yml')
-def event_userCheckin_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.event_userCheckin()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/accept_event', methods=['POST'])
-@swag_from('netwirkProfile/accept_event.yml')
-def accept_event_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.accept_event()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_list_of_events_accepted', methods=['POST'])
-@swag_from('netwirkProfile/get_list_of_events_accepted.yml')
-def get_list_of_events_accepted_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_list_of_events_accepted()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/cancel_decline_event', methods=['POST'])
-@swag_from('netwirkProfile/cancel_decline_event.yml')
-def cancel_decline_event_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.cancel_decline_event()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/best_matches', methods=['POST'])
-@swag_from('netwirkProfile/best_matches.yml')
-def best_matches_now():
-    from metrics import record_application_error, record_recommendation_request
-    record_recommendation_request()
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.best_matches()
-        return create
-    except:
-        record_application_error()
-        return "Error"
-
-@netwirkProfileRoute.route('/send_event_invites', methods=['POST'])
-@swag_from('netwirkProfile/send_event_invites.yml')
-def send_event_invites_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.send_event_invites()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_list_of_events_invited', methods=['POST'])
-@swag_from('netwirkProfile/get_list_of_events_invited.yml')
-def get_list_of_events_invited_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_list_of_events_invited()
-        return create
-    except:
-        return "Error"
-
 # @netwirkProfileRoute.route('/extract_designation_and_industry', methods=['POST'])
 # @swag_from('netwirkProfile/extract_designation_and_industry.yml')
 # def extract_designation_and_industry_now():
@@ -478,66 +301,6 @@ def get_vibing_list_now():
     netwirkProfile = profile()
     try:
         create = netwirkProfile.get_vibing_list()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_designations_list', methods=['POST'])
-@swag_from('netwirkProfile/get_designations_list.yml')
-def get_designations_list_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_designations_list()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_update_card', methods=['POST'])
-@swag_from('netwirkProfile/get_update_card.yml')
-def get_update_card_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_update_card()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_list_of_all_users', methods=['POST'])
-@swag_from('netwirkProfile/get_list_of_all_users.yml')
-def get_list_of_all_users_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_list_of_all_users()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_education_list', methods=['POST'])
-@swag_from('netwirkProfile/get_education_list.yml')
-def get_education_list_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_education_list()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/get_title_list', methods=['POST'])
-@swag_from('netwirkProfile/get_title_list.yml')
-def get_title_list_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_title_list()
-        return create
-    except:
-        return "Error"
-
-@netwirkProfileRoute.route('/search_place', methods=['POST'])
-@swag_from('netwirkProfile/search_place.yml')
-def search_place_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.search_place()
         return create
     except:
         return "Error"
@@ -602,16 +365,6 @@ def get_user_list_by_radius_now():
     except:
         return "Error"
     
-@netwirkProfileRoute.route('/ask', methods=['POST'])
-@swag_from('netwirkProfile/ask.yml')
-def ask_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.ask()
-        return create
-    except:
-        return "Error"
-    
 @netwirkProfileRoute.route('/user_pictures', methods=['POST'])
 @swag_from('netwirkProfile/user_pictures.yml')
 def upload_user_pictures():
@@ -622,17 +375,6 @@ def upload_user_pictures():
     except:
         return "Error"
     
-@netwirkProfileRoute.route('/vibe_today', methods=['POST'])
-@swag_from('netwirkProfile/vibe_today.yml')
-def user_vibe_today():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.vibe_today()
-        return create
-    except:
-        return "Error"
-    
- 
 # @netwirkProfileRoute.route('/events/<int:userId>', methods=['GET'])
 # @swag_from('netwirkProfile/events.yml')  
 # def events(userId):
@@ -752,26 +494,6 @@ def user_live_location_now():
     except:
         return "Error"
     
-@netwirkProfileRoute.route('/get_vibepersonality_qns1', methods=['POST'])
-@swag_from('netwirkProfile/get_vibepersonality_qns1.yml')
-def get_vibepersonality_qns1_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_vibepersonality_qns1()
-        return create
-    except:
-        return "Error"
-    
-@netwirkProfileRoute.route('/get_vibepersonality_qns2', methods=['POST'])
-@swag_from('netwirkProfile/get_vibepersonality_qns2.yml')
-def get_vibepersonality_qns2_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_vibepersonality_qns2()
-        return create
-    except:
-        return "Error"
-
 @netwirkProfileRoute.route('/get_vibepersonality_qns3', methods=['POST'])
 @swag_from('netwirkProfile/get_vibepersonality_qns3.yml')
 def get_vibepersonality_qns3_now():
@@ -788,46 +510,6 @@ def get_vibepersonality_qns4_now():
     netwirkProfile = profile()
     try:
         create = netwirkProfile.get_vibepersonality_qns4()
-        return create
-    except:
-        return "Error"
-    
-@netwirkProfileRoute.route('/get_vibepersonality_qns5', methods=['POST'])
-@swag_from('netwirkProfile/get_vibepersonality_qns5.yml')
-def get_vibepersonality_qns5_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_vibepersonality_qns5()
-        return create
-    except:
-        return "Error"
-    
-@netwirkProfileRoute.route('/get_vibepersonality_qns6', methods=['POST'])
-@swag_from('netwirkProfile/get_vibepersonality_qns6.yml')
-def get_vibepersonality_qns6_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_vibepersonality_qns6()
-        return create
-    except:
-        return "Error"
-    
-@netwirkProfileRoute.route('/get_vibepersonality_qns7', methods=['POST'])
-@swag_from('netwirkProfile/get_vibepersonality_qns7.yml')
-def get_vibepersonality_qns7_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_vibepersonality_qns7()
-        return create
-    except:
-        return "Error"
-    
-@netwirkProfileRoute.route('/get_vibepersonality_qns8', methods=['POST'])
-@swag_from('netwirkProfile/get_vibepersonality_qns8.yml')
-def get_vibepersonality_qns8_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.get_vibepersonality_qns8()
         return create
     except:
         return "Error"
@@ -918,26 +600,6 @@ def get_current_liked_user_list_near_now():
     netwirkProfile = profile()
     try:
         create = netwirkProfile.get_current_liked_user_list_near()
-        return create
-    except:
-        return "Error"
-    
-@netwirkProfileRoute.route('/send_like', methods=['POST'])
-@swag_from('netwirkProfile/send_like.yml')
-def send_like_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.send_like()
-        return create
-    except:
-        return "Error"
-    
-@netwirkProfileRoute.route('/send_like_near', methods=['POST'])
-@swag_from('netwirkProfile/send_like_near.yml')
-def send_like_near_now():
-    netwirkProfile = profile()
-    try:
-        create = netwirkProfile.send_like_near()
         return create
     except:
         return "Error"

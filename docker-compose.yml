@@ -1,0 +1,92 @@
+# Runs the API as separate microservices behind one nginx gateway.
+#   docker compose up --build
+#   curl http://localhost:8080/gateway/health
+# Settings come from .env (see .env.example); runtime JSON configs go in ./secrets/.
+
+x-service: &service
+  image: vybr-api:local
+  pull_policy: never
+  restart: unless-stopped
+  env_file:
+    - path: .env
+      required: false
+  volumes:
+    - ./secrets:/var/run/secrets/vyb:ro
+  depends_on:
+    - redis
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+    interval: 15s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+x-env: &env
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-local-only}
+  REDIS_URL: redis://redis:6379/0
+  VIBR_REGISTRATION_CONFIG_FILE: /var/run/secrets/vyb/vibr_registration_config.json
+  VIBR_CONFIG_FILE: /var/run/secrets/vyb/vibr_config.json
+  FIREBASE_SERVICE_ACCOUNT_FILE: /var/run/secrets/vyb/firebase-admin.json
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  auth:
+    <<: *service
+    build: .
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.auth_app:app"]
+    environment:
+      <<: *env
+      SERVICE_NAME: auth
+
+  profile:
+    <<: *service
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.profile_app:app"]
+    environment:
+      <<: *env
+      SERVICE_NAME: profile
+
+  geo:
+    <<: *service
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.geo_app:app"]
+    environment:
+      <<: *env
+      SERVICE_NAME: geo
+
+  social:
+    <<: *service
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.social_app:app"]
+    environment:
+      <<: *env
+      SERVICE_NAME: social
+
+  recsys:
+    <<: *service
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.recsys_app:app"]
+    environment:
+      <<: *env
+      SERVICE_NAME: recsys
+
+  legacy:
+    <<: *service
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.legacy_app:app"]
+    environment:
+      <<: *env
+      SERVICE_NAME: legacy
+
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./services/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth
+      - profile
+      - geo
+      - social
+      - recsys
+      - legacy

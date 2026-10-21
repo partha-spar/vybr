@@ -25,27 +25,34 @@ def _load_dotenv():
 _load_dotenv()
 
 LOG_FILE = "app_startup_error.log"
+_log_handlers = [logging.StreamHandler(sys.stdout)]
+try:
+    _log_handlers.insert(0, FileHandler(LOG_FILE, mode="a"))
+except OSError:
+    # Containers run as a non-root user without write access to /app.
+    pass
 logging.basicConfig(
     level=logging.INFO,
-    handlers=[
-        FileHandler(LOG_FILE, mode="a"),
-        logging.StreamHandler(sys.stdout),
-    ],
+    handlers=_log_handlers,
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 try:
     from datetime import timedelta
+    import importlib
 
     from flask import Flask, jsonify, request, Response
     from flask_cors import CORS
     from flask_jwt_extended import JWTManager
     from flasgger import LazyJSONEncoder, Swagger
     from metrics import metrics_response
+    from services.catalog import ALL_SERVICES, serves
 
-    from App.matchDemoRoute import matchDemoRoute
-    from App.netwirkProfileRoute import netwirkProfileRoute
-    from App.netwirk_registrationRoute import registrationRoute
+    SERVICE_NAME = os.getenv("SERVICE_NAME", "").strip().lower() or None
+    if SERVICE_NAME and SERVICE_NAME not in ALL_SERVICES:
+        raise RuntimeError(
+            f"Unknown SERVICE_NAME {SERVICE_NAME!r}; expected one of {ALL_SERVICES}"
+        )
 
     app = Flask(__name__)
     try:
@@ -87,9 +94,11 @@ try:
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=120)
     JWTManager(app)
 
-    app.register_blueprint(registrationRoute)
-    app.register_blueprint(netwirkProfileRoute)
-    app.register_blueprint(matchDemoRoute)
+    _route_services = (SERVICE_NAME,) if SERVICE_NAME else tuple(ALL_SERVICES)
+    for _svc in _route_services:
+        _route_mod = importlib.import_module(f"App.{_svc}_routes")
+        for _bp in _route_mod.BLUEPRINTS:
+            app.register_blueprint(_bp)
 
     app.config["SWAGGER"] = {
         "title": "Icebreaker API",
@@ -113,6 +122,7 @@ try:
         return jsonify(
             {
                 "status": "ok",
+                "service": os.getenv("SERVICE_NAME") or "all",
                 "swagger": "/swagger",
                 "demo": "/demo/match",
                 "offline_feed_dashboard": "/offline-feed-dashboard",
@@ -145,6 +155,15 @@ try:
         limit = int(request.args.get("limit", 100))
         events = list_offline_feed_events(limit=limit)
         return jsonify({"summary": dashboard_summary(events), "events": events})
+
+    if SERVICE_NAME:
+        kept_rules = [
+            rule.empty()
+            for rule in app.url_map.iter_rules()
+            if serves(SERVICE_NAME, rule.rule)
+        ]
+        app.url_map = app.url_map_class(kept_rules, strict_slashes=app.url_map.strict_slashes)
+        logging.info("Serving microservice %r with %d routes", SERVICE_NAME, len(kept_rules))
 
     if __name__ == "__main__":
         app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8000")))

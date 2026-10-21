@@ -23,6 +23,7 @@ mysql-connector-python==9.1.0
 SQLAlchemy==2.0.36
 PyMySQL==1.1.2
 duckdb==1.5.5
+redis==5.2.1
 
 # --- AWS ---
 boto3==1.35.79
