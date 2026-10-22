@@ -50,7 +50,7 @@ scikit-learn==1.6.0
 sentence-transformers==5.4.1
 transformers==4.41.0
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.8.0+cpu
+torch==2.8.0
 xgboost==2.1.4
 faiss-cpu==1.9.0.post1
 

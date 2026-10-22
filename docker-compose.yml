@@ -36,42 +36,42 @@ services:
   auth:
     <<: *service
     build: .
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.auth_app:app"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.auth_app:app"]
     environment:
       <<: *env
       SERVICE_NAME: auth
 
   profile:
     <<: *service
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.profile_app:app"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.profile_app:app"]
     environment:
       <<: *env
       SERVICE_NAME: profile
 
   geo:
     <<: *service
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.geo_app:app"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.geo_app:app"]
     environment:
       <<: *env
       SERVICE_NAME: geo
 
   social:
     <<: *service
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.social_app:app"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.social_app:app"]
     environment:
       <<: *env
       SERVICE_NAME: social
 
   recsys:
     <<: *service
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.recsys_app:app"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.recsys_app:app"]
     environment:
       <<: *env
       SERVICE_NAME: recsys
 
   legacy:
     <<: *service
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.legacy_app:app"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "services.legacy_app:app"]
     environment:
       <<: *env
       SERVICE_NAME: legacy

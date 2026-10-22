@@ -11,7 +11,7 @@ import hashlib
 from Model.netwirk_DB import DB
 from botocore.exceptions import ClientError
 import jwt
-from time import time
+import time
 import os
 import json
 import boto3
@@ -243,7 +243,7 @@ class AuthRegistrationService(RegistrationBase):
 
             # Generating unique jwt token
             jwt_secret_key = self._jwt_secret_key()
-            jwt_payload = {'email': email, 'timestamp': int(time())} 
+            jwt_payload = {'email': email, 'timestamp': int(time.time())} 
             jwt_token = jwt.encode(jwt_payload, jwt_secret_key, algorithm='HS256')
 
             otp_sent = {"email": False, "phone": False}
@@ -1645,7 +1645,7 @@ class AuthRegistrationService(RegistrationBase):
 
     def _login_generate_jwt(self, email):
         jwt_secret_key = self._jwt_secret_key()
-        jwt_payload = {'email': email, 'timestamp': int(time())}
+        jwt_payload = {'email': email, 'timestamp': int(time.time())}
         return jwt.encode(jwt_payload, jwt_secret_key, algorithm='HS256')
 
     def _login_get_user_id(self, cursor, email):

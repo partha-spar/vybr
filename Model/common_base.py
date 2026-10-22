@@ -11,7 +11,7 @@ import hashlib
 from Model.netwirk_DB import DB
 from botocore.exceptions import ClientError
 import jwt
-from time import time
+import time
 import os
 import json
 import boto3
